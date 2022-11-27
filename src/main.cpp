@@ -12,9 +12,9 @@
 #define IIC_SCL A5
 
 // set the LCD address to 0x27 for a 16 chars and 2 line display
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+LiquidCrystal_I2C lcd(0x27, 16, 2); // LCD Initialization
 
-Servo svo;
+Servo svo; //motor 
 int pos = 0;
 
 const byte ROWS = 4; // four rows
@@ -26,13 +26,14 @@ char hexaKeys[ROWS][COLS] = {{'1', '2', '3', 'A'},
                              {'*', '0', '#', 'D'}};
 byte rowPins[ROWS] = {9, 8, 7, 6};
 byte colPins[COLS] = {5, 4, 3, 2};
-Keypad kpd = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
-char k = NO_KEY;
-char valstr[4];
-char prevstr[4];
+Keypad kpd = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); //keypad setup, defined as kpd object
+char k = NO_KEY; //null key
+char valstr[4]; // array of characters to be printed to lcd
+char prevstr[4]; // compare 
 int idx = 0;
 int tar = 0;
-volatile unsigned long tic = 0;
+int last = 0; // last motor pos in degrees before buffer
+
 
 unsigned long tsli = 0; // time since last interaction, ms
 unsigned long toli = 0; // time OF last interaction, ms
@@ -48,7 +49,7 @@ void setup() {
 
     // Object Initializations:
     kpd.setDebounceTime(10);
-
+    //LCD Start initialization
     lcd.init();
     lcd.backlight();
     lcd.blink_on();
@@ -90,10 +91,13 @@ void loop() {
         }
         lcd.setCursor(idx, 1);
     }
-
-    tar = String(valstr).substring(0, 2 + 1).toInt() % 180;
-    svo.write(tar);
-    Serial.println(tar);
+    if (tar != last) {
+        last = tar; 
+        tar = String(valstr).substring(0, 2 + 1).toInt() % 180;
+        svo.write(tar);
+        Serial.println(tar);
+    }
+   
 
     svo.readMicroseconds();
 
