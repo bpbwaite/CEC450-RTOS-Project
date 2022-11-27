@@ -91,9 +91,9 @@ void loop() {
         }
         lcd.setCursor(idx, 1);
     }
-    if (tar != last) {
+    tar = String(valstr).substring(0, 2 + 1).toInt() % 180;
+    if (tar != last && tsli > 10) {
         last = tar; 
-        tar = String(valstr).substring(0, 2 + 1).toInt() % 180;
         svo.write(tar);
         Serial.println(tar);
     }
