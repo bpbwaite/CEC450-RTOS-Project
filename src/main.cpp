@@ -39,30 +39,24 @@ unsigned long toli = 0; // time OF last interaction, ms
 
 void setup() {
     // put your setup code here, to run once:
+    // System Initializations:
 
     Serial.begin(9600);
     yield();
 
     pinMode(PIN_OSC, OUTPUT);
 
+    // Object Initializations:
     kpd.setDebounceTime(10);
 
     lcd.init();
     lcd.backlight();
-
-    svo.attach(PIN_SERVO);
-    strcpy(valstr, "000");
-    svo.write(90); //starts at pos 0
     lcd.blink_on();
     lcd.clear();
 
-    //    tic = micros();
-    //
-    //    tic = micros() - tic;
-    //    Serial.println(tic);
-    //    Serial.println(idx);
-    //    while (1)
-    //        ;
+    svo.attach(PIN_SERVO);
+    strcpy(valstr, "000");
+    svo.write(0); //starts at pos 0
 }
 
 void loop() {
