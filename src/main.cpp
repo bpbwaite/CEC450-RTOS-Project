@@ -37,8 +37,11 @@ int tar = 0;
 int last = 0; // last motor pos in degrees before buffer
 boolean valid = false;
 
-unsigned long tsli = 0; // time since last interaction, ms
 unsigned long toli = 0; // time OF last interaction, ms
+inline unsigned long tsli() {
+    // time since last interaction, ms
+    return millis() - toli;
+}
 
 inline boolean isNum(char c) { return c >= '0' && c <= '9'; }
 
@@ -67,7 +70,7 @@ void setup() {
 void loop() {
     // put your main code here, to run repeatedly:
 
-    if ((tsli = millis() - toli) > TIMEOUT) {
+    if (tsli() > TIMEOUT) {
         strcpy(valstr, str_default);
         idx = 0;
     }
@@ -91,8 +94,9 @@ void loop() {
             if (valstr[c] != '\0')
                 lcd.write(valstr[c]);
         }
-        lcd.setCursor(idx, 1);
     }
+
+    lcd.setCursor(idx, 1);
 
     valid = true;
     for (idx2 = 0; idx2 < 3; ++idx2) {
@@ -103,7 +107,7 @@ void loop() {
     }
     if (valid) {
         tar = String(valstr).substring(0, 2 + 1).toInt() % 180;
-        if (tar != last && tsli >= TIMEOUT_SOFT) {
+        if (tar != last && tsli() >= TIMEOUT_SOFT) {
             last = tar;
             svo.write(tar);
             Serial.println(tar);
