@@ -161,10 +161,10 @@ void setup() {
 
 // CYCLIC EXECUTIVE
 void loop() {
-    static const unsigned long H = 500; // Hyperperiod, ms
+    static const unsigned long H = 250; // Hyperperiod, ms
 
     do {
-        scanKeypad();
+
     } while (millis() % H <= 5);
     do {
         servoTask();
@@ -172,6 +172,11 @@ void loop() {
     do {
         updateLCDTask();
     } while (millis() % H <= 104);
+
+    // enter slack time:
+    do {
+        scanKeypad(); // idle task is polling server
+    } while (millis() % H > 104);
 
     // watchdog for system resets every {TIMEOUT} seconds
     if (tsli() > TIMEOUT) {
