@@ -101,11 +101,14 @@ void servoTask() {
     digitalWrite(PIN_TASK_S, LOW);
 }
 void updateLCDTask() {
-    digitalWrite(PIN_TASK_L, HIGH);
+
     const uint8_t inputStart = 7;
     static boolean needsUpdate = false;
 
     if ((needsUpdate = (strcmp(prevstr, inputStr) != 0))) {
+
+        digitalWrite(PIN_TASK_L, HIGH); // only log the task if it is ran
+
         // 1/3: angle:
         strcpy(prevstr, inputStr);
         lcd.setCursor(inputStart, 0);
@@ -121,8 +124,8 @@ void updateLCDTask() {
 
         // position the cursor:
         lcd.setCursor(cPtr + inputStart, 0);
-        digitalWrite(PIN_TASK_L, LOW);
     }
+    digitalWrite(PIN_TASK_L, LOW);
 }
 
 // PROGRAM EXECUTION BEGINS BELOW
@@ -161,14 +164,13 @@ void setup() {
 
 // CYCLIC EXECUTIVE
 void loop() {
-    static const unsigned long H = 250; // Hyperperiod, ms
+    static const unsigned long H = 200; // 5Hz Hyperperiod, ms
+    while (millis() < H)
+        ; // burn one period to synchronize timer
 
-    do {
-
-    } while (millis() % H <= 5);
-    do {
+    if (millis() % H <= 6)
         servoTask();
-    } while (millis() % H <= 6);
+
     do {
         updateLCDTask();
     } while (millis() % H <= 104);
