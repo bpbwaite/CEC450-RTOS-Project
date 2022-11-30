@@ -70,7 +70,6 @@ inline void scanKeypad() {
     digitalWrite(PIN_TASK_K, HIGH);
     if ((k = kpd.getKey()) != NO_KEY) {
         toli = millis();
-        Serial.println(inputStr);
         if (k >= '0' && k <= '9') {
             inputStr[cPtr] = k;
             cPtr++;
