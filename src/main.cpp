@@ -18,6 +18,7 @@
 #define PIN_SERVO A0
 #define IIC_SDA A4
 #define IIC_SCL A5
+#define BAUDRATE 9600
 
 // GLOBAL OBJECT CREATION
 
@@ -42,7 +43,7 @@ char k = NO_KEY;
 const char *str_default = "---";
 const char *lcd_mask1 = "ANGLE: ### <   ";
 const char *lcd_mask2 = "X##  Y### _....";
-char mu = 0b11100100; // Greek Mu character in LCDspeak
+const char mu = 0b11100100; // Greek Mu character in LCDspeak
 
 char inputStr[(INPUTLEN + 1)];
 char usstr[(INPUTLEN + 1)];
@@ -53,7 +54,6 @@ int16_t tar = 0;       // target motor position, degrees
 int16_t last = 0;      // last motor position, degrees
 boolean valid = false; // is the angle value string a valid angle
 
-int jdx = 0;            // global simple iterator variable
 unsigned long toli = 0; // time OF last interaction, ms
 
 // TASK FUNCTIONS
@@ -70,7 +70,6 @@ inline void scanKeypad() {
     digitalWrite(PIN_TASK_K, HIGH);
     if ((k = kpd.getKey()) != NO_KEY) {
         toli = millis();
-        Serial.println(inputStr);
         if (k >= '0' && k <= '9') {
             inputStr[cPtr] = k;
             cPtr++;
@@ -84,6 +83,8 @@ inline void scanKeypad() {
 void servoTask() {
     digitalWrite(PIN_TASK_S, HIGH);
     valid = true;
+
+    static int jdx = 0; // iterator
     for (jdx = 0; jdx < INPUTLEN; ++jdx) {
         if (!isNum(inputStr[jdx])) {
             valid = false;
@@ -92,7 +93,7 @@ void servoTask() {
     }
     if (valid) {
         // syntax is substring(start index, # chars to read)
-        tar = String(inputStr).substring(0, INPUTLEN).toInt() % 180;
+        tar = (String(inputStr).substring(0, INPUTLEN).toInt() - 1) % 180 + 1;
         if (tar != last && tsli() >= TIMEOUT_SOFT) {
             last = tar;
             svo.write(tar);
@@ -102,7 +103,7 @@ void servoTask() {
 }
 void updateLCDTask() {
 
-    const uint8_t inputStart = 7;
+    static const uint8_t inputStart = 7;
     static boolean needsUpdate = false;
 
     if ((needsUpdate = (strcmp(prevstr, inputStr) != 0))) {
@@ -133,7 +134,7 @@ void updateLCDTask() {
 void setup() {
     // System Initializations:
 
-    Serial.begin(9600);
+    Serial.begin(BAUDRATE);
     yield();
 
     pinMode(PIN_TASK_K, OUTPUT);
@@ -160,6 +161,7 @@ void setup() {
     lcd.print(lcd_mask2);
     lcd.setCursor(0xA, 1);
     lcd.write(mu);
+    lcd.home();
 }
 
 // CYCLIC EXECUTIVE
