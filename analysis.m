@@ -1,22 +1,22 @@
 %% Parse Data
 close all
 
-dataset = SDS00002;
+dataset = SDS00003;
 t = dataset(:,1);
 Ts = mean(diff(t));
-Fs = 1/T;
+Fs = 1/Ts;
 
 CH1 = dataset(:,2);
 CH2 = dataset(:,3);
 CH3 = dataset(:,4);
 CH4 = dataset(:,5);
 
-vthre = 3.0
+vthresh = 3.0;
 %constrain
-CH1 = 5*(CH1 > vthre);
-CH2 = 5*(CH2 > vthre);
-CH3 = 5*(CH3 > vthre);
-CH4 = 5*(CH4 > vthre);
+CH1 = 5*(CH1 > vthresh);
+CH2 = 5*(CH2 > vthresh);
+CH3 = 5*(CH3 > vthresh);
+CH4 = 5*(CH4 > vthresh);
 
 %% SDS1
 figure, hold on, grid on
