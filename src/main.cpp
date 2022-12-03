@@ -19,6 +19,7 @@
 #define IIC_SDA A4
 #define IIC_SCL A5
 #define BAUDRATE 9600
+#define ANGLE_MAX 180
 
 // GLOBAL OBJECT CREATION
 
@@ -49,10 +50,9 @@ char inputStr[(INPUTLEN + 1)];
 char usstr[(INPUTLEN + 1)];
 char prevstr[(INPUTLEN + 1)];
 
-uint8_t cPtr = 0;      // lcd cursor pointer offset
-int16_t tar = 0;       // target motor position, degrees
-int16_t last = 0;      // last motor position, degrees
-boolean valid = false; // is the angle value string a valid angle
+uint8_t cPtr = 0; // lcd cursor pointer offset
+int16_t tar = 0;  // target motor position, degrees
+int16_t last = 0; // last motor position, degrees
 
 unsigned long toli = 0; // time OF last interaction, ms
 
@@ -82,6 +82,8 @@ inline void scanKeypad() {
 }
 void servoTask() {
     digitalWrite(PIN_TASK_S, HIGH);
+    static int16_t tar_raw = 0;
+    static boolean valid = false; // is the angle value string a valid angle
     valid = true;
 
     static int jdx = 0; // iterator
@@ -93,12 +95,32 @@ void servoTask() {
     }
     if (valid) {
         // syntax is substring(start index, # chars to read)
-        tar = (String(inputStr).substring(0, INPUTLEN).toInt() - 1) % 180 + 1;
+        tar_raw = (String(inputStr).substring(0, INPUTLEN).toInt() - 1);
+        tar = tar_raw % ANGLE_MAX + 1;
         if (tar != last && tsli() >= TIMEOUT_SOFT) {
             last = tar;
             svo.write(tar);
         }
+
+    } else {
+        // test if we can use the first 2 digits only for a valid result
+        valid = true;
+        for (jdx = 0; jdx < INPUTLEN - 1; ++jdx) {
+            if (!isNum(inputStr[jdx])) {
+                valid = false;
+                break;
+            }
+        }
+        if (valid) {
+            // syntax is substring(start index, # chars to read)
+            tar = (String(inputStr).substring(0, INPUTLEN - 1).toInt());
+            if (tar != last && tsli() >= TIMEOUT_SOFT) {
+                last = tar;
+                svo.write(tar);
+            }
+        }
     }
+
     digitalWrite(PIN_TASK_S, LOW);
 }
 void updateLCDTask() {
